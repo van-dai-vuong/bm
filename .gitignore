@@ -1,0 +1,4 @@
+data/**
+detrend_data/**
+synthetic_anomaly/**
+results/**
