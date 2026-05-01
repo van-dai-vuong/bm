@@ -34,10 +34,10 @@ def ProbTimeDetection(
                 count_anomaly = 0
                 sum_time_detection = pd.Timedelta(0)
                 np.random.seed(anomaly_info["random_seed"])
-                ts_len = len(anomaly_score[ts][anomaly_type][i][0].index)
+                ts_len = len(anomaly_score[ts][anomaly_type][str(key)][0].index)
                 anom_index = np.random.randint(0, ts_len, size=num_anomaly)
                 
-                for j, df_score in anomaly_score[ts][anomaly_type][i].items():
+                for j, df_score in anomaly_score[ts][anomaly_type][str(key)].items():
                     _anomaly_time = df_score.index[anom_index[j]]
                     after_anomaly = df_score.loc[df_score.index >= _anomaly_time, df_score.columns[0]]
                     if after_anomaly.any():
