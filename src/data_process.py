@@ -34,10 +34,11 @@ def GenerateAnomaly(
         data_with_anomaly[int(c)] = {}
         data_with_anomaly[int(c)]["level"] = {}
         data_with_anomaly[int(c)]["trend"] = {}
-        np.random.seed(anomaly_info["random_seed"])
-        anom_index = np.random.randint(0, len(df_temp.index), size=num_anomaly_per_magnitude)
-
-        for i, val in enumerate(anomaly_info["anomaly_magnitude"]["level"]):
+        # np.random.seed(anomaly_info["random_seed"])
+        # anom_index = np.random.randint(0, len(df_temp.index), size=num_anomaly_per_magnitude)
+        anom_index = np.array(anomaly_info["random_number"][:num_anomaly_per_magnitude])
+        anom_index = (anom_index * len(df_temp.index)).astype(int).tolist()
+        for _, val in enumerate(anomaly_info["anomaly_magnitude"]["level"]):
             data_with_anomaly[int(c)]["level"][str(val)] = {}
             for j in range(num_anomaly_per_magnitude):
                 _anomaly_time = df_temp.index[anom_index[j]]
@@ -45,7 +46,7 @@ def GenerateAnomaly(
                 df_temp_i.loc[df_temp_i.index >= _anomaly_time, "value"] += val
                 data_with_anomaly[int(c)]["level"][str(val)][j] = df_temp_i
 
-        for i, val in enumerate(anomaly_info["anomaly_magnitude"]["trend"]):
+        for _, val in enumerate(anomaly_info["anomaly_magnitude"]["trend"]):
             data_with_anomaly[int(c)]["trend"][str(val)] = {}
             for j in range(num_anomaly_per_magnitude):
                 _anomaly_time = df_temp.index[anom_index[j]]

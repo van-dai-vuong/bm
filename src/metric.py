@@ -21,7 +21,7 @@ def ProbTimeDetection(
 ):
     prob = {}
     time = {}
-    num_anomaly = anomaly_info["num_anomaly_per_magnitude"]
+    num_anomaly_per_magnitude = anomaly_info["num_anomaly_per_magnitude"] = anomaly_info["num_anomaly_per_magnitude"]
     for ts in anomaly_score:
         prob[ts] = {}
         time[ts] = {}
@@ -30,12 +30,15 @@ def ProbTimeDetection(
             prob[ts][anomaly_type] = {}
             time[ts][anomaly_type] = {}
 
-            for i, key in enumerate(anomaly_info["anomaly_magnitude"][anomaly_type]):
+            for _, key in enumerate(anomaly_info["anomaly_magnitude"][anomaly_type]):
                 count_anomaly = 0
                 sum_time_detection = pd.Timedelta(0)
-                np.random.seed(anomaly_info["random_seed"])
+                # np.random.seed(anomaly_info["random_seed"])
+                # ts_len = len(anomaly_score[ts][anomaly_type][str(key)][0].index)
+                # anom_index = np.random.randint(0, ts_len, size=num_anomaly)
                 ts_len = len(anomaly_score[ts][anomaly_type][str(key)][0].index)
-                anom_index = np.random.randint(0, ts_len, size=num_anomaly)
+                anom_index = np.array(anomaly_info["random_number"][:num_anomaly_per_magnitude])
+                anom_index = (anom_index * ts_len).astype(int).tolist()
                 
                 for j, df_score in anomaly_score[ts][anomaly_type][str(key)].items():
                     _anomaly_time = df_score.index[anom_index[j]]
@@ -46,8 +49,8 @@ def ProbTimeDetection(
                         _time_to_detection = first_dec_time - _anomaly_time
                         sum_time_detection += _time_to_detection
 
-                prob[ts][anomaly_type][str(key)] = count_anomaly/num_anomaly
-                time[ts][anomaly_type][str(key)] = sum_time_detection/num_anomaly
+                prob[ts][anomaly_type][str(key)] = count_anomaly/num_anomaly_per_magnitude
+                time[ts][anomaly_type][str(key)] = sum_time_detection/num_anomaly_per_magnitude
         
     return prob, time
                 

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import numpy as np
 import pandas as pd
 import json
-from src.data_process import GenerateAnomaly
+from src.data_process import GenerateAnomaly, PrepareDf
 from src.metric import ProbTimeDetection, FalseRate
 
 from canari import (
@@ -33,13 +33,15 @@ sensor_names = pd.read_csv(data_folder + data_file, nrows=0, delimiter=",").colu
 df = pd.read_csv(data_folder + data_file, skiprows=1, delimiter=",", header=None)
 df_time = pd.read_csv(data_folder + data_file_time, skiprows=1, delimiter=",", header=None)
 
+df_dict = PrepareDf(df, df_time)
+
 # Anomaly info.
 anomaly_info_file = "/Users/vuongdai/GitHub/bm/detrend_data/anomaly_info/anomaly_info.json"
 with open(anomaly_info_file, "r") as f:
     anomaly_info = json.load(f)
 
 # Generate anomalies
-df_with_anomaly, df_dict = GenerateAnomaly(data=df, time=df_time, anomaly_info=anomaly_info, col=["0","1"])
+df_with_anomaly = GenerateAnomaly(data=df_dict, anomaly_info=anomaly_info, col=[0,1])
 
 # SKF model
 sigma_v = 5e-2
