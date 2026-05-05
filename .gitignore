@@ -1,6 +1,9 @@
 *.DS_Store
 *.vscode
 *.json
+*.csv
+*.pdf
+*.pgf
 **/__pycache__/
 *.egg-info/
 data/**
