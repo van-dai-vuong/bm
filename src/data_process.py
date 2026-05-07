@@ -94,6 +94,8 @@ def GenerateAnomaly(
         
     data_with_anomaly = {}
     num_anomaly_per_magnitude = anomaly_info["num_anomaly_per_magnitude"]
+    if col is None:
+        col = range(len(data))
 
     for c in col:
         df_temp = data[c]
