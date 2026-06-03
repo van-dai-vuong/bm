@@ -96,6 +96,7 @@ for epoch in range(1):
         train_data=train_data,
         validation_data=validation_data,
     )
+    check = 1
 
 def detect_synthetic_anomaly(
     data,
