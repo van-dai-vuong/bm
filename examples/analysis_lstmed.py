@@ -59,9 +59,9 @@ for ts, df_temp in df_dict.items():
     )
 
     model = ProphetDetector(anom_threshold=0.1)
-    score_train = model.get_anomaly_score(data = df_with_anomaly)
-    prob_detection, time_to_detection = ProbTimeDetection(score_train, anomaly_info)
-    # false_rate = FalseRate(score_train)
+    score_train = model.get_anomaly_score(data = df_train)
+    false_rate = FalseRate(score_train)
+    # prob_detection, time_to_detection = ProbTimeDetection(score_train, anomaly_info)
 
     check  = 1
 
