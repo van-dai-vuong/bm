@@ -44,5 +44,4 @@ class BaseDetector(ABC):
         """
         Obtain anomaly score for all time series
         """
-        data = apply_recursive(data, fn=self.data_process)
         return apply_recursive(data, fn=self.anomaly_score)

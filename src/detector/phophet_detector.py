@@ -28,6 +28,7 @@ class ProphetDetector(BaseDetector):
         return data
     
     def anomaly_score(self, data):
+        data = self.data_process(data)
         model = Prophet(changepoint_range=1)
         with disable_logging():
             model.fit(data)

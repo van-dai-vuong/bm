@@ -8,7 +8,7 @@ import json
 from src.data_process import GenerateAnomaly, PrepareDf
 from src.metric import ProbTimeDetection, FalseRate
 import pickle
-from src.detector.phophet_detector import ProphetDetector
+from src.detector.lstmed_detector import LstmEdDetector
 
 # # Data folder 
 # data_folder = "/Users/vuongdai/GitHub/bm/detrend_data/monthly/"
@@ -58,10 +58,11 @@ for ts, df_temp in df_dict.items():
         start_anomaly_offset=start_anomaly_offset,
     )
 
-    model = ProphetDetector(anom_threshold=0.1)
-    score_train = model.get_anomaly_score(data = df_train)
-    false_rate = FalseRate(score_train)
-    # prob_detection, time_to_detection = ProbTimeDetection(score_train, anomaly_info)
+    model = LstmEdDetector(sequence_len=52)
+    model.train(data=_df_train)
+    test_score = model.get_anomaly_score(data = df_with_anomaly)
+
+    prob_detection, time_to_detection = ProbTimeDetection(test_score, anomaly_info)
 
     check  = 1
 
