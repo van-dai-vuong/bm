@@ -5,8 +5,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import numpy as np
 import pandas as pd
 import json
-from src.data_process import GenerateAnomaly, PrepareDf
-from src.metric import ProbTimeDetection, FalseRate
+from src.tsbenchmark.data_process import GenerateAnomaly, PrepareDf
+from src.tsbenchmark.metric import ProbTimeDetection, FalseRate
 
 from canari import (
     DataProcess,

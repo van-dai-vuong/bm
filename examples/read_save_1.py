@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from prophet import Prophet
-from src.data_process import UpdateCsv
+from src.tsbenchmark.data_process import UpdateCsv
 
 data_file = "/Users/vuongdai/Desktop/backup_canari/DATA_HQ_TDSB/GRAF-CASC/DAT/LTU/LTUBAR/EXT/LTU002ESAPRG920.DAT"
 df_raw = pd.read_csv(data_file,
