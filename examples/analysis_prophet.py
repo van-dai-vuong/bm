@@ -5,10 +5,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import numpy as np
 import pandas as pd
 import json
-from src.tsbenchmark.data_process import GenerateAnomaly, PrepareDf
-from src.tsbenchmark.metric import ProbTimeDetection, FalseRate
+from tsbenchmark.data_process import GenerateAnomaly, PrepareDf
+from tsbenchmark.metric import ProbTimeDetection, FalseRate
 import pickle
-from src.tsbenchmark.detector.phophet_detector import ProphetDetector
+from tsbenchmark.detector.phophet_detector import ProphetDetector
 
 # # Data folder 
 # data_folder = "/Users/vuongdai/GitHub/bm/detrend_data/monthly/"

@@ -1,3 +1,0 @@
-[submodule "third_party/tranad"]
-    path = third_party/tranad
-    url = https://github.com/imperial-qore/TranAD
