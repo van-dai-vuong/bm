@@ -29,19 +29,19 @@ class BaseDetector(ABC):
         """
 
     @abstractmethod
-    def data_process(self, data):
+    def data_process(self, data, **kwargs):
         """
         Data processing for the detector
         """
     
     @abstractmethod
-    def anomaly_score(self, data):
+    def anomaly_score(self, data, **kwargs):
         """
         Obtain anomaly score
         """
 
-    def get_anomaly_score(self, data):
+    def get_anomaly_score(self, data, **kwargs):
         """
         Obtain anomaly score for all time series
         """
-        return apply_recursive(data, fn=self.anomaly_score)
+        return apply_recursive(data, fn=self.anomaly_score, **kwargs)

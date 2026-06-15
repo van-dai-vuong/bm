@@ -31,13 +31,13 @@ class TranAdDetector(BaseDetector):
         args.model = 'TranAD'
         self._model = None
 
-    def data_process(self, data: pd.DataFrame):
+    def data_process(self, data: pd.DataFrame, **kwargs):
         arr   = data.to_numpy(dtype=np.float64).reshape(len(data), -1)
         dataO = torch.DoubleTensor(arr)
         dataD = convert_to_windows(dataO, self._model)   # [T, w_size, n_feats]
         return dataO, dataD
 
-    def train(self, data: pd.DataFrame):
+    def train(self, data: pd.DataFrame, **kwargs):
         n_feats = data.to_numpy(dtype=np.float64).reshape(len(data), -1).shape[1]
         self._model     = TranAD(n_feats).double()
         self._optimizer = torch.optim.AdamW(
@@ -64,9 +64,9 @@ class TranAdDetector(BaseDetector):
         self._anom_threshold_upper = np.nanmax(loss_train[:, 0]) * 1.1
         self._anom_threshold_lower = np.nanmin(loss_train[:, 0]) * 0.9
 
-    def anomaly_score(self, data: pd.DataFrame) -> pd.DataFrame:
+    def anomaly_score(self, data: pd.DataFrame, **kwargs):
         self._model.eval()
-        dataO, dataD = self.data_process(data)
+        dataO, dataD = self.data_process(data, **kwargs)
         loss, _ = backprop(
             0, self._model, dataD, dataO, self._optimizer, self._scheduler,
             training=False

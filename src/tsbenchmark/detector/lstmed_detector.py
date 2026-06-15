@@ -19,13 +19,13 @@ class LstmEdDetector(BaseDetector):
         batch_size: Optional[int] = None,
         learning_rate: Optional[int] = None,
     ):
-        self._anom_threshold = anom_threshold
         self._num_epoch = num_epoch
         self._sequence_len = sequence_len
         self._hidden_size = hidden_size
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         super().__init__()
+        self._anom_threshold = anom_threshold
 
     def init_detector(self):
         self._detector_name = "LSTMED"
@@ -37,10 +37,10 @@ class LstmEdDetector(BaseDetector):
                         # lr=self._learning_rate,
         ))
 
-    def data_process(self, data):
+    def data_process(self, data, **kwargs):
         return TimeSeries.from_pd(data)
     
-    def train(self, data):
+    def train(self, data, **kwargs):
         train_data = TimeSeries.from_pd(data)
         train_labels = pd.DataFrame(0, index=data.index, columns=["anomaly"])
         train_labels = TimeSeries.from_pd(train_labels)
@@ -53,8 +53,8 @@ class LstmEdDetector(BaseDetector):
             max_train_score = float(scores.max())
             self._anom_threshold = max(1.1 * max_train_score, 0.1)
         
-    def anomaly_score(self, data):
-        data = self.data_process(data)
+    def anomaly_score(self, data, **kwargs):
+        data = self.data_process(data, **kwargs)
         _score = self._model.get_anomaly_label(time_series=data)
         
         scores_uv = _score.univariates[_score.names[0]]

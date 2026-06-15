@@ -14,21 +14,20 @@ class ProphetDetector(BaseDetector):
         self,
         anom_threshold: Optional[float] = None,
     ):
-        self._threshold = anom_threshold
         super().__init__()
+        self._anom_threshold = anom_threshold
 
     def init_detector(self):
         self._detector_name = "prophet"
-        self._anom_threshold = self._threshold
 
-    def data_process(self, data):
+    def data_process(self, data, **kwargs):
         data.reset_index(inplace=True)
         data.columns = ['ds', 'y']
 
         return data
     
-    def anomaly_score(self, data):
-        data = self.data_process(data)
+    def anomaly_score(self, data, **kwargs):
+        data = self.data_process(data, **kwargs)
         model = Prophet(changepoint_range=1)
         with disable_logging():
             model.fit(data)
