@@ -22,7 +22,7 @@ class SkfDetector(BaseDetector):
         self._detector_name = "SKF"
 
     def data_process(self, data, **kwargs):
-        covariates = kwargs.get("covariates", None) 
+        covariates = kwargs.get("covariates", [[] for _ in range(len(data))]) 
         _data = {
             "y": data.values,
             "x": covariates,
@@ -31,7 +31,7 @@ class SkfDetector(BaseDetector):
         return _data
 
     def anomaly_score(self, data, **kwargs):
-        _data = self.data_process(data, **kwargs)
+        _data = self.data_process(data.copy(), **kwargs)
         scores, _ = self._model.filter(data=_data)
 
         return pd.DataFrame({"value": scores > self._anom_threshold}, index=data.index)
