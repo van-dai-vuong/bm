@@ -38,9 +38,15 @@ class LstmEdDetector(BaseDetector):
         ))
 
     def data_process(self, data, **kwargs):
+        # TODO: data with nan
+        # data = data.ffill().bfill()
+        # if data.isna().any().any():
+        #     data = data.fillna(0)
         return TimeSeries.from_pd(data)
     
     def train(self, data, **kwargs):
+        # TODO: data with nan
+        # data = data.ffill().bfill().fillna(0)
         train_data = TimeSeries.from_pd(data)
         train_labels = pd.DataFrame(0, index=data.index, columns=["anomaly"])
         train_labels = TimeSeries.from_pd(train_labels)
