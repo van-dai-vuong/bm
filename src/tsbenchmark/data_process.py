@@ -89,42 +89,64 @@ def PrepareDf (data, time):
 def GenerateAnomaly(
     data,
     anomaly_info,
-    start_anomaly_offset: Optional[float] = 0.0,
     col: Optional[list[int]] = None,
 ):
         
     data_with_anomaly = {}
+    anomaly_info_out = {}
+
     num_anomaly_per_magnitude = anomaly_info["num_anomaly_per_magnitude"]
+    anom_start = anomaly_info["anomaly_start"]
+    anom_end = anomaly_info["anomaly_end"]
+
+    # Anomaly start location
+    _anom_start_index = []
+    for _anom_start in anomaly_info["random_number"]:
+        if anom_start <= _anom_start <= anom_end:
+            _anom_start_index.append(_anom_start)
+            if len(_anom_start_index) == num_anomaly_per_magnitude:
+                break
+    _anom_start_index = np.array(_anom_start_index)
+
     if col is None:
         col = range(len(data))
 
     for c in col:
         df_temp = data[c]
-        data_with_anomaly[int(c)] = {}
-        data_with_anomaly[int(c)]["level"] = {}
-        data_with_anomaly[int(c)]["trend"] = {}
-        
-        anom_index = np.array(anomaly_info["random_number"][:num_anomaly_per_magnitude])
-        anom_index = np.where(anom_index >= start_anomaly_offset, anom_index, start_anomaly_offset + anom_index)
+        anom_start_index = (_anom_start_index * len(df_temp.index)).astype(int).tolist()
 
-        anom_index = (anom_index * len(df_temp.index)).astype(int).tolist()
-        for _, val in enumerate(anomaly_info["anomaly_magnitude"]["level"]):
-            data_with_anomaly[int(c)]["level"][str(val)] = {}
-            for j in range(num_anomaly_per_magnitude):
-                _anomaly_time = df_temp.index[anom_index[j]]
-                df_temp_i = df_temp.copy()
-                df_temp_i.iloc[df_temp_i.index >= _anomaly_time,0] += val
-                data_with_anomaly[int(c)]["level"][str(val)][j] = df_temp_i
+        for d in (data_with_anomaly, anomaly_info_out):
+            d[int(c)] = {}
+            if anomaly_info["anomaly_magnitude"].get("level"):
+                d[int(c)]["level"] = {}
+            if anomaly_info["anomaly_magnitude"].get("trend"):
+                d[int(c)]["trend"] = {}
 
-        for _, val in enumerate(anomaly_info["anomaly_magnitude"]["trend"]):
-            data_with_anomaly[int(c)]["trend"][str(val)] = {}
-            for j in range(num_anomaly_per_magnitude):
-                _anomaly_time = df_temp.index[anom_index[j]]
-                df_temp_i = df_temp.copy()
-                # Apply trend: linearly increasing from anomaly_time onward
-                trend_mask = df_temp_i.index >= _anomaly_time
-                n = trend_mask.sum()
-                df_temp_i.iloc[trend_mask, 0] += val * np.arange(1, n + 1)
-                data_with_anomaly[int(c)]["trend"][str(val)][j] = df_temp_i
+        if anomaly_info["anomaly_magnitude"].get("level"):
+            for _, val in enumerate(anomaly_info["anomaly_magnitude"]["level"]):
+                for d in (data_with_anomaly, anomaly_info_out):
+                    d[int(c)]["level"][str(val)] = {}
+                for j in range(num_anomaly_per_magnitude):
+                    data_with_anomaly[int(c)]["level"][str(val)][j] = {}
+                    _anomaly_time = df_temp.index[anom_start_index[j]]
+                    df_temp_i = df_temp.copy()
+                    df_temp_i.iloc[df_temp_i.index >= _anomaly_time,0] += val
+                    data_with_anomaly[int(c)]["level"][str(val)][j] = df_temp_i
+                    anomaly_info_out[int(c)]["level"][str(val)][j] = _anomaly_time
 
-    return data_with_anomaly
+        if anomaly_info["anomaly_magnitude"].get("trend"):
+            for _, val in enumerate(anomaly_info["anomaly_magnitude"]["trend"]):
+                for d in (data_with_anomaly, anomaly_info_out):
+                    d[int(c)]["trend"][str(val)] = {}
+                for j in range(num_anomaly_per_magnitude):
+                    data_with_anomaly[int(c)]["trend"][str(val)][j] = {}
+                    _anomaly_time = df_temp.index[anom_start_index[j]]
+                    df_temp_i = df_temp.copy()
+                    # Apply trend: linearly increasing from anomaly_time onward
+                    trend_mask = df_temp_i.index >= _anomaly_time
+                    n = trend_mask.sum()
+                    df_temp_i.iloc[trend_mask, 0] += val * np.arange(1, n + 1)
+                    data_with_anomaly[int(c)]["trend"][str(val)][j] = df_temp_i
+                    anomaly_info_out[int(c)]["trend"][str(val)][j] = _anomaly_time
+
+    return data_with_anomaly, anomaly_info_out 

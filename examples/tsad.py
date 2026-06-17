@@ -16,28 +16,30 @@ from tsbenchmark.detector import ProphetDetector, SkfDetector, TranAdDetector, L
 
 # -------------------------------------------------------------------#
 # Load data
-data_folder = "/Users/vuongdai/GitHub/bm/detrend_data/monthly/"
+# data_folder = "/Users/vuongdai/GitHub/bm/detrend_data/monthly/"
 
-# Data file
-data_file = "ts_monthly_values_standardize.csv"
+# # Data file
+# data_file = "ts_monthly_values_standardize.csv"
 
-# Time file
-data_file_time = "ts_monthly_datetimes.csv"
+# # Time file
+# data_file_time = "ts_monthly_datetimes.csv"
 
-sensor_names = pd.read_csv(data_folder + data_file, nrows=0, delimiter=",").columns.tolist()
-df = pd.read_csv(data_folder + data_file, skiprows=1, delimiter=",", usecols=[0, 1, 2, 3], header=None)
-df_time = pd.read_csv(data_folder + data_file_time, skiprows=1, delimiter=",", usecols=[0, 1, 2, 3], header=None)
+# sensor_names = pd.read_csv(data_folder + data_file, nrows=0, delimiter=",").columns.tolist()
+# df = pd.read_csv(data_folder + data_file, skiprows=1, delimiter=",", usecols=[0, 1, 2, 3], header=None)
+# df_time = pd.read_csv(data_folder + data_file_time, skiprows=1, delimiter=",", usecols=[0, 1, 2, 3], header=None)
 
-df_dict = PrepareDf(df, df_time)
+# df_dict = PrepareDf(df, df_time)
 
-# data_file = "/Users/vuongdai/GitHub/canari/data/benchmark_data/test_2_data.csv"
-# df = pd.read_csv(data_file, skiprows=0, delimiter=",")
-# date_time = pd.to_datetime(df["date"])
-# df = df.drop("date", axis=1)
-# df.index = date_time
-# df.index.name = "date_time"
+data_file = "/Users/vuongdai/GitHub/canari/data/toy_time_series/sine.csv"
+df = pd.read_csv(data_file, skiprows=1, delimiter=",", header=None)
+data_file_time = "/Users/vuongdai/GitHub/canari/data/toy_time_series/sine_datetime.csv"
+time_series = pd.read_csv(data_file_time, skiprows=1, delimiter=",", header=None)
+time_series = pd.to_datetime(time_series[0])
+df.index = time_series
+df.index.name = "date_time"
+df.columns = ["values"]
 
-# df_dict = {0: df}
+df_dict = {0: df}
 # -------------------------------------------------------------------#
 
 # -------------------------------------------------------------------#
@@ -66,30 +68,33 @@ for ts, df_temp in df_dict.items():
         test_split=1-train_split,
         output_col=[0],
     )
-    _train_data, _, _test_data, _ = data_processor.get_splits()
-    test_cov = _test_data["x"].copy()
+    _train_data, _, _, all_data = data_processor.get_splits()
+    test_cov = all_data["x"].copy()
 
+    # Training data
     train_df = pd.DataFrame(
         data = _train_data["y"],
         index= _train_data["time"],
     )
     train_dict = {0: train_df}
 
+    # Test data: include training data
     test_df = pd.DataFrame(
-        data = _test_data["y"],
-        index= _test_data["time"],
+        data = all_data["y"],
+        index= all_data["time"],
     )
     test_dict = {0: test_df}
 
     # # Generate anomalies
-    start_anomaly_offset = 0.25
-    test_data_with_anomaly = GenerateAnomaly(
+    anomaly_info["anomaly_start"] = 0.6
+    anomaly_info["anomaly_end"] = 1.0
+    test_data_with_anomaly, test_data_anom_info = GenerateAnomaly(
         data=copy.deepcopy(test_dict),
         anomaly_info=anomaly_info,
-        start_anomaly_offset=start_anomaly_offset,
     )
 
-    # -------------------------------------------------------------------#
+    # ----------------------------------------------
+    # ---------------------#
     # TSAD comparision
 
     # -------------------------------------------------------------------#
@@ -100,8 +105,8 @@ for ts, df_temp in df_dict.items():
     anom_result[ts]["skf"]["ttd"] = {}
 
     skf_models_link = {}
-    skf_models_link["seed_1"] = "/Users/vuongdai/GitHub/bm/results/BM2_g.pkl"
-    skf_models_link["seed_2"] = "/Users/vuongdai/GitHub/bm/results/BM2_g_1.pkl"
+    skf_models_link["seed_1"] = "/Users/vuongdai/GitHub/canari/saved_params/toy_anomaly_detection_tune.pkl"
+    # skf_models_link["seed_2"] = "/Users/vuongdai/GitHub/bm/results/BM2_g_1.pkl"
 
     print("SKF detector ...... ")
     for i, link in skf_models_link.items():
@@ -137,7 +142,10 @@ for ts, df_temp in df_dict.items():
     score_test_with_anomaly = model.get_anomaly_score(data=copy.deepcopy(test_data_with_anomaly))
 
     false_rate = FalseRate(score_test)
-    prob_detection, time_to_detection = ProbTimeDetection(score_test_with_anomaly, anomaly_info)
+    prob_detection, time_to_detection = ProbTimeDetection(
+        score_test_with_anomaly, 
+        test_data_anom_info,
+        max_anom_detect_time=pd.Timedelta("2D"))
 
     anom_result[ts]["prophet"]["false_rate"] = false_rate[0]
     anom_result[ts]["prophet"]["prob"] = prob_detection[0]
@@ -154,7 +162,7 @@ for ts, df_temp in df_dict.items():
 
     for i in ["seed_1","seed_2"]:
         print(f"Seed #{i}")
-        model = LstmEdDetector(sequence_len=52)
+        model = LstmEdDetector(sequence_len=24)
 
         model.train(data=train_df)
 
@@ -163,7 +171,10 @@ for ts, df_temp in df_dict.items():
         score_test_with_anomaly = model.get_anomaly_score(data=copy.deepcopy(test_data_with_anomaly))
 
         false_rate = FalseRate(score_test)
-        prob_detection, time_to_detection = ProbTimeDetection(score_test_with_anomaly, anomaly_info)
+        prob_detection, time_to_detection = ProbTimeDetection(
+            score_test_with_anomaly, 
+            test_data_anom_info,
+            max_anom_detect_time=pd.Timedelta("2D"))
 
         anom_result[ts]["lstmed"]["false_rate"][i] = false_rate[0]
         anom_result[ts]["lstmed"]["prob"][i] = prob_detection[0]
@@ -189,7 +200,10 @@ for ts, df_temp in df_dict.items():
         score_test_with_anomaly = model.get_anomaly_score(data=copy.deepcopy(test_data_with_anomaly))
 
         false_rate = FalseRate(score_test)
-        prob_detection, time_to_detection = ProbTimeDetection(score_test_with_anomaly, anomaly_info)
+        prob_detection, time_to_detection = ProbTimeDetection(
+            score_test_with_anomaly, 
+            test_data_anom_info,
+            max_anom_detect_time=pd.Timedelta("2D"))
 
         anom_result[ts]["tranad"]["false_rate"][i] = false_rate[0]
         anom_result[ts]["tranad"]["prob"][i] = prob_detection[0]
